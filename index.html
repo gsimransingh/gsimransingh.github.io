@@ -1135,7 +1135,7 @@
       <div>
         <div class="project-badge">★ Featured Project</div>
         <div class="project-name">PhishGuard</div>
-        <div class="project-desc">A Python CLI tool for SOC analysts that automates Tier 1 phishing email triage — extracting IOCs, validating email authentication, enriching with live threat intel, and generating SIEM-ready alert reports.</div>
+        <div class="project-desc">A Python CLI tool for SOC analysts that automates Tier 1 phishing email triage — parsing .eml files, validating authentication chains, enriching IOCs via threat intel APIs, and generating SIEM-ready reports. Offline by default; external enrichment requires explicit consent.</div>
       </div>
       <div class="project-links">
         <a href="https://github.com/gsimransingh/PhishGuard/blob/main/README.md" target="_blank" class="project-link">⌥ GitHub Repo</a>
@@ -1145,13 +1145,13 @@
       <div class="project-features">
         <div class="feature-title">What it does</div>
         <ul class="feature-list">
-          <li><span class="dot"></span>Parses .eml files — headers, Reply-To chain, X-Originating-IP, Message-ID</li>
+          <li><span class="dot"></span>Parses .eml files — headers, Reply-To chain, HTML body URLs, attachment metadata</li>
           <li><span class="dot"></span>Validates SPF, DKIM, DMARC from headers + live DNS record lookups</li>
-          <li><span class="dot"></span>Extracts IOCs — URLs, IPv4s, attachment metadata from email body</li>
-          <li><span class="dot"></span>Checks IPs against AbuseIPDB and URLs against VirusTotal APIs</li>
-          <li><span class="dot"></span>Weighted risk scoring engine — outputs LOW / MEDIUM / HIGH verdict</li>
-          <li><span class="dot"></span>Outputs structured JSON, plain text, HTML, and CEF for SIEM ingestion</li>
-          <li><span class="dot"></span>Runs fully in offline mode without API keys</li>
+          <li><span class="dot"></span>Extracts IOCs — URLs, IPv4s, display-link vs destination mismatches</li>
+          <li><span class="dot"></span>Enriches IPs via AbuseIPDB and URLs via VirusTotal when API keys are set</li>
+          <li><span class="dot"></span>Weighted risk scoring — LOW / MEDIUM / HIGH / CRITICAL with explainable findings</li>
+          <li><span class="dot"></span>Outputs text, JSON, HTML, CEF, and CSV — SIEM-ready out of the box</li>
+          <li><span class="dot"></span>Batch triage mode + standalone URL/domain analysis with typosquatting detection</li>
         </ul>
       </div>
       <div class="terminal-panel">
@@ -1163,24 +1163,23 @@
             <div class="terminal-title">phishguard — output</div>
           </div>
           <div class="terminal-body">
-<span class="t-prompt">$</span> <span class="t-cmd">python main.py -f samples/phishing_test.eml -o json</span>
-<span class="t-comment"># Parsing email headers...</span>
+<span class="t-prompt">$</span> <span class="t-cmd">phishguard -f samples/phishing_test.eml --enrich -o json</span>
+<span class="t-comment"># Parsing headers, body, attachments...</span>
 <span class="t-comment"># Validating SPF / DKIM / DMARC...</span>
-<span class="t-comment"># Running DNS lookups...</span>
-<span class="t-comment"># Checking threat intel APIs...</span>
+<span class="t-comment"># Enriching IOCs — AbuseIPDB · VirusTotal...</span>
 <br>
 <span class="t-key">{</span>
   <span class="t-key">"tool"</span>: <span class="t-str">"PhishGuard"</span>,
-  <span class="t-key">"version"</span>: <span class="t-str">"0.2.0"</span>,
-  <span class="t-key">"risk_level"</span>: <span class="t-flag-high">"HIGH"</span>,
-  <span class="t-key">"risk_score"</span>: <span class="t-num">120</span>,
+  <span class="t-key">"version"</span>: <span class="t-str">"0.4.0"</span>,
+  <span class="t-key">"risk_level"</span>: <span class="t-flag-high">"CRITICAL"</span>,
+  <span class="t-key">"risk_score"</span>: <span class="t-num">158</span>,
   <span class="t-key">"flags"</span>: [
     <span class="t-flag-high">"SPF check failed"</span>,
     <span class="t-flag-high">"DKIM signature missing"</span>,
     <span class="t-flag-high">"DMARC check failed"</span>,
     <span class="t-flag-warn">"Reply-To mismatch: billing@paypal.com → collect@evil.ru"</span>,
-    <span class="t-flag-warn">"Suspicious URL: paypal-verify.login.evil.ru"</span>,
-    <span class="t-flag-high">"High-abuse IP: 185.220.101.47 (score: 98)"</span>
+    <span class="t-flag-warn">"Display-link mismatch: paypal.com → paypal-verify.login.evil.ru"</span>,
+    <span class="t-flag-high">"High-abuse IP: 185.220.101.47 (AbuseIPDB score: 98)"</span>
   ],
   <span class="t-key">"iocs"</span>: {
     <span class="t-key">"urls"</span>: [<span class="t-str">"http://paypal-verify.login.evil.ru/account"</span>],
@@ -1192,7 +1191,7 @@
         <div class="risk-viz">
           <div class="risk-label-row">
             <span class="risk-label">Risk Score</span>
-            <span class="risk-score-badge">120 — HIGH</span>
+            <span class="risk-score-badge">158 — CRITICAL</span>
           </div>
           <div class="risk-bar-track">
             <div class="risk-bar-fill"></div>
@@ -1201,13 +1200,14 @@
       </div>
     </div>
     <div class="tech-tags">
-      <span class="tech-tag">Python 3</span>
+      <span class="tech-tag">Python 3.10+</span>
       <span class="tech-tag">dnspython</span>
-      <span class="tech-tag">requests</span>
       <span class="tech-tag">AbuseIPDB API</span>
       <span class="tech-tag">VirusTotal API</span>
       <span class="tech-tag">SPF/DKIM/DMARC</span>
-      <span class="tech-tag">JSON/CEF output</span>
+      <span class="tech-tag">JSON/CEF/CSV</span>
+      <span class="tech-tag">Batch triage</span>
+      <span class="tech-tag">URL analysis</span>
       <span class="tech-tag">CLI</span>
     </div>
   </div>
@@ -1217,7 +1217,7 @@
       <div>
         <div class="project-badge">⬡ Diagnostics Tool</div>
         <div class="project-name">Shuri</div>
-        <div class="project-desc">A fast, open-source workstation diagnostics CLI for IT support and security teams — a portable first-response toolkit that answers one practical question: what is the health of this workstation right now?</div>
+        <div class="project-desc">A fast, open-source workstation diagnostics CLI for IT support and security teams — a portable first-response toolkit that answers one question: what is the health of this workstation right now? No agents, no monitoring overhead.</div>
       </div>
       <div class="project-links">
         <a href="https://github.com/gsimransingh/shuri/blob/main/README.md" target="_blank" class="project-link">⌥ GitHub Repo</a>
@@ -1227,13 +1227,13 @@
       <div class="project-features">
         <div class="feature-title">What it does</div>
         <ul class="feature-list">
-          <li><span class="dot"></span>Checks CPU utilisation, core count, frequency, and system load</li>
-          <li><span class="dot"></span>Reads memory and swap pressure, disk capacity, and free space</li>
-          <li><span class="dot"></span>Inspects network adapters, MAC addresses, gateway, DNS, and reachability</li>
-          <li><span class="dot"></span>Reads battery charge and capacity health on supported Windows laptops</li>
-          <li><span class="dot"></span>Surfaces key Windows services, pending reboot/update state, and AV posture</li>
-          <li><span class="dot"></span>Exports terminal, JSON, HTML, and Markdown reports</li>
-          <li><span class="dot"></span>Shows every deduction that built the health score, not just the final number</li>
+          <li><span class="dot"></span>Checks CPU, memory, disk, network, battery, and Windows AV posture in one scan</li>
+          <li><span class="dot"></span>Physical drive health — reliability counters and operational state via Windows-native data</li>
+          <li><span class="dot"></span>Transparent scoring: every deduction shown explicitly — 100 minus deductions = health score</li>
+          <li><span class="dot"></span>History tracking — retains last 50 assessments; <code>shuri compare</code> diffs any two</li>
+          <li><span class="dot"></span>Exports terminal, JSON, HTML, and Markdown reports with <code>--redact</code> for safe sharing</li>
+          <li><span class="dot"></span>Builds a standalone Windows .exe — no Python required on target workstation</li>
+          <li><span class="dot"></span>Concurrent 4-worker scan with live progress; each diagnostic reports its own duration</li>
         </ul>
       </div>
       <div class="terminal-panel">
@@ -1246,28 +1246,28 @@
           </div>
           <div class="terminal-body">
 <span class="t-prompt">$</span> <span class="t-cmd">shuri doctor -f json -o report.json</span>
-<span class="t-comment"># Checking CPU, memory, disk...</span>
-<span class="t-comment"># Checking network adapters &amp; reachability...</span>
-<span class="t-comment"># Checking battery health...</span>
-<span class="t-comment"># Checking Windows services &amp; update state...</span>
+<span class="t-comment"># Sampling CPU before heavy collectors...</span>
+<span class="t-comment"># Running diagnostics — 4 workers...</span>
+<span class="t-comment"># Checking drives, network, services, AV...</span>
 <br>
 <span class="t-key">{</span>
   <span class="t-key">"tool"</span>: <span class="t-str">"Shuri"</span>,
-  <span class="t-key">"version"</span>: <span class="t-str">"0.1.0"</span>,
-  <span class="t-key">"score"</span>: <span class="t-num">92</span>,
-  <span class="t-key">"assessment"</span>: <span class="t-str">"Excellent"</span>,
+  <span class="t-key">"version"</span>: <span class="t-str">"0.4.0"</span>,
+  <span class="t-key">"score"</span>: <span class="t-num">87</span>,
+  <span class="t-key">"assessment"</span>: <span class="t-str">"Healthy"</span>,
   <span class="t-key">"deductions"</span>: [
     <span class="t-flag-warn">"Pending reboot (-5)"</span>,
+    <span class="t-flag-warn">"Drive wear above threshold (-5)"</span>,
     <span class="t-flag-warn">"Low system-drive space (-3)"</span>
   ],
-  <span class="t-key">"calculation"</span>: <span class="t-str">"100 - 8 = 92"</span>
+  <span class="t-key">"calculation"</span>: <span class="t-str">"100 - 13 = 87"</span>
 <span class="t-key">}</span>
           </div>
         </div>
         <div class="risk-viz">
           <div class="risk-label-row">
             <span class="risk-label">Health Score</span>
-            <span class="health-score-badge">92 — Excellent</span>
+            <span class="health-score-badge">87 — Healthy</span>
           </div>
           <div class="risk-bar-track">
             <div class="health-bar-fill"></div>
@@ -1281,8 +1281,9 @@
       <span class="tech-tag">Rich</span>
       <span class="tech-tag">psutil</span>
       <span class="tech-tag">Jinja2</span>
+      <span class="tech-tag">Windows-native</span>
+      <span class="tech-tag">Standalone .exe</span>
       <span class="tech-tag">CLI</span>
-      <span class="tech-tag">Cross-platform</span>
     </div>
   </div>
 
