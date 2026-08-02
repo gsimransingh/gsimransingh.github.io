@@ -138,6 +138,73 @@
     letter-spacing: -0.02em;
     color: var(--white);
     margin-bottom: 0.4rem;
+    visibility: hidden;
+  }
+
+  /* ── INTRO ── */
+  #intro-name {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2.8rem, 6vw, 5rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: #F0F4FF;
+    z-index: 9999;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  #intro-cursor {
+    display: inline-block;
+    width: 3px;
+    height: 0.85em;
+    background: #0FF4C6;
+    margin-left: 4px;
+    vertical-align: middle;
+    animation: blink 1.1s step-end infinite;
+  }
+  #intro-name.moving {
+    transition: top 0.9s cubic-bezier(0.76, 0, 0.24, 1),
+                left 0.9s cubic-bezier(0.76, 0, 0.24, 1),
+                font-size 0.9s cubic-bezier(0.76, 0, 0.24, 1),
+                transform 0.9s cubic-bezier(0.76, 0, 0.24, 1);
+  }
+  #intro-overlay {
+    position: fixed;
+    inset: 0;
+    background: #0A0E17;
+    z-index: 9998;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+  #intro-overlay.hide { opacity: 0; visibility: hidden; }
+  #intro-prompt {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, calc(-50% - 3.5rem));
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: #4B5563;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+  .hero-label, .hero-tagline, .hero-desc, .hero-ctas, .hero-socials {
+    opacity: 0;
+  }
+  .hero-revealed .hero-label    { animation: cFadeIn 0.5s ease 0s forwards; }
+  .hero-revealed .hero-tagline  { animation: cFadeIn 0.5s ease 0.15s forwards; }
+  .hero-revealed .hero-desc     { animation: cFadeIn 0.5s ease 0.3s forwards; }
+  .hero-revealed .hero-ctas     { animation: cFadeIn 0.5s ease 0.45s forwards; }
+  .hero-revealed .hero-socials  { animation: cFadeIn 0.5s ease 0.6s forwards; }
+  @keyframes cFadeIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
   .hero-tagline {
@@ -889,6 +956,10 @@
   </ul>
 </nav>
 
+<div id="intro-overlay"></div>
+<div id="intro-prompt">~/portfolio $</div>
+<div id="intro-name"><span id="intro-typed"></span><span id="intro-cursor"></span></div>
+
 <!-- HERO -->
 <section id="hero">
   <div class="hero-grid-bg"></div>
@@ -1349,6 +1420,77 @@
       a.style.color = a.getAttribute('href') === '#' + current ? 'var(--white)' : '';
     });
   });
+</script>
+<script>
+(function () {
+  var fullName = 'Gursimran Singh';
+  var typedEl = document.getElementById('intro-typed');
+  var cursorEl = document.getElementById('intro-cursor');
+  var introName = document.getElementById('intro-name');
+  var introPrompt = document.getElementById('intro-prompt');
+  var overlay = document.getElementById('intro-overlay');
+  var heroName = document.querySelector('.hero-name');
+  var heroContent = document.querySelector('.hero-content');
+  var nav = document.querySelector('nav');
+  var i = 0;
+
+  nav.style.opacity = '0';
+
+  // show prompt first
+  setTimeout(function () {
+    introPrompt.style.opacity = '1';
+  }, 300);
+
+  // start typing after prompt appears
+  setTimeout(function () {
+    typeChar();
+  }, 700);
+
+  function typeChar() {
+    if (i <= fullName.length) {
+      typedEl.textContent = fullName.slice(0, i);
+      i++;
+      setTimeout(typeChar, 75);
+    } else {
+      // pause then move
+      setTimeout(moveToHeading, 600);
+    }
+  }
+
+  function moveToHeading() {
+    cursorEl.style.display = 'none';
+    introPrompt.style.opacity = '0';
+
+    // where the intro text currently sits (centered)
+    var introRect = introName.getBoundingClientRect();
+    var introCenterX = introRect.left + introRect.width / 2;
+    var introCenterY = introRect.top + introRect.height / 2;
+
+    // where the real heading sits
+    var heroRect = heroName.getBoundingClientRect();
+    var heroCenterX = heroRect.left + heroRect.width / 2;
+    var heroCenterY = heroRect.top + heroRect.height / 2;
+
+    // delta from intro center to hero center
+    var dx = heroCenterX - introCenterX;
+    var dy = heroCenterY - introCenterY;
+
+    // current transform keeps it at translate(-50%, -50%) from top:50% left:50%
+    // add the delta on top of that — no position switch needed
+    introName.classList.add('moving');
+    introName.style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px))';
+
+    setTimeout(function () {
+      heroName.style.visibility = 'visible';
+      introName.style.display = 'none';
+      overlay.classList.add('hide');
+      nav.style.transition = 'opacity 0.5s ease';
+      nav.style.opacity = '1';
+      heroContent.classList.add('hero-revealed');
+      setTimeout(function () { overlay.style.display = 'none'; }, 500);
+    }, 950);
+  }
+})();
 </script>
 </body>
 </html>
